@@ -1,6 +1,6 @@
 # GEPH
 
-Graph Optimized PostgreSQL Handler, or GEPH (pronounced Jeff), is a modified version of PostgreSQL optimized to load large graph datasets quickly. The project builds off of Postgres relase 9.5.2.
+Graph Enhanced PostgreSQL Handler, or GEPH (pronounced Jeff), is a modified version of PostgreSQL optimized to load large graph datasets quickly. The project builds off of Postgres relase 9.5.2.
 
 ## Zoo Build Instructions
 

@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Building GEPH on the Zoo overwrites certain C files. This isn't a bad thing!
+# It's part of the build process. Only issue is that these files show up as
+# being modified when you run "git status". This script makes Git ignore
+# changes to these files:
+#
+#     post-zoo-build ignore
+#
+# Note that this effect can't be accomplished by adding these files to the
+# .gitignore. This would eliminate these files from the repo altogether.
+#
+# The effects of this script can be reversed by running:
+#
+#     post-zoo-build unignore
+#
+# The ignored files can be listed by running:
+#
+#     post-zoo-build list-ignored
+
+if [[ $1 == 'ignore' ]]; then
+    git update-index --assume-unchanged src/backend/bootstrap/bootparse.c
+    git update-index --assume-unchanged src/backend/bootstrap/bootscanner.c
+    git update-index --assume-unchanged src/backend/parser/gram.c
+    git update-index --assume-unchanged src/backend/parser/gram.h
+    git update-index --assume-unchanged src/backend/parser/scan.c
+    git update-index --assume-unchanged src/backend/replication/repl_gram.c
+    git update-index --assume-unchanged src/backend/replication/repl_scanner.c
+    git update-index --assume-unchanged src/backend/utils/misc/guc-file.c
+    git update-index --assume-unchanged src/bin/pgbench/exprparse.c
+    git update-index --assume-unchanged src/bin/pgbench/exprscan.c
+    git update-index --assume-unchanged src/bin/psql/psqlscan.c
+    git update-index --assume-unchanged src/interfaces/ecpg/preproc/pgc.c
+    git update-index --assume-unchanged src/interfaces/ecpg/preproc/preproc.c
+    git update-index --assume-unchanged src/interfaces/ecpg/preproc/preproc.h
+    git update-index --assume-unchanged src/pl/plpgsql/src/pl_gram.c
+    git update-index --assume-unchanged src/pl/plpgsql/src/pl_gram.h
+
+else if [[ $1 == 'unignore' ]]; then
+    git update-index --no-assume-unchanged src/backend/bootstrap/bootparse.c
+    git update-index --no-assume-unchanged src/backend/bootstrap/bootscanner.c
+    git update-index --no-assume-unchanged src/backend/parser/gram.c
+    git update-index --no-assume-unchanged src/backend/parser/gram.h
+    git update-index --no-assume-unchanged src/backend/parser/scan.c
+    git update-index --no-assume-unchanged src/backend/replication/repl_gram.c
+    git update-index --no-assume-unchanged src/backend/replication/repl_scanner.c
+    git update-index --no-assume-unchanged src/backend/utils/misc/guc-file.c
+    git update-index --no-assume-unchanged src/bin/pgbench/exprparse.c
+    git update-index --no-assume-unchanged src/bin/pgbench/exprscan.c
+    git update-index --no-assume-unchanged src/bin/psql/psqlscan.c
+    git update-index --no-assume-unchanged src/interfaces/ecpg/preproc/pgc.c
+    git update-index --no-assume-unchanged src/interfaces/ecpg/preproc/preproc.c
+    git update-index --no-assume-unchanged src/interfaces/ecpg/preproc/preproc.h
+    git update-index --no-assume-unchanged src/pl/plpgsql/src/pl_gram.c
+    git update-index --no-assume-unchanged src/pl/plpgsql/src/pl_gram.h
+
+else if [[ $1 == 'list-ignored' ]]; then
+    git ls-files -v | grep '^[[:lower:]]'
+
+else
+    echo 'usage: post-zoo-build [ ignore | unignore | list-ignored ]'
+fi
+fi
+fi
