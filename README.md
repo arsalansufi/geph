@@ -36,3 +36,22 @@ For subsequent builds, you just need to run:
 gmake
 gmake install
 ```
+
+## Useful Commands
+
+All of the information in this section comes from Postgres's documentation.
+I'm just including this brief list of commands for convenience.
+
+```
+# Initialize a new database server.
+initdb -D <data directory>
+
+# Start the initialized database server.
+pg_ctl -D <data directory> -l <logfile> start
+
+# Create a database.
+createdb <database name>
+
+# Connect to the database and start an interactive Postgres terminal.
+psql <database name>
+```
