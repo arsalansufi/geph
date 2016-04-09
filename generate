@@ -1,0 +1,192 @@
+#!/bin/python
+
+import math
+import random
+import string
+import subprocess
+import sys
+
+
+# constants ===================================================================
+
+GEPH_BIN_DIR = '/home/accts/aas85/Workspace/cs438/final-project/geph-build/bin'
+
+# The script won't create this database. The database needs to have already
+# been created (using the createdb binary for example).
+DB_NAME = 'socialnetwork'
+
+NODE_TABLE_NAME = 'nodes'
+EDGE_TABLE_NAME = 'edges'
+
+NAME_LENGTH_MIN = 1
+NAME_LENGTH_MAX = 50
+NAME_LENGTH_AVG = 6
+NAME_LENGTH_SD  = 2
+NAME_CHAR_SET   = string.lowercase
+
+BIO_LENGTH_MIN = 0
+BIO_LENGTH_MAX = 250
+BIO_LENGTH_AVG = 100
+BIO_LENGTH_SD  = 50
+BIO_CHAR_SET   = string.lowercase + string.uppercase + string.digits
+BIO_PROB_NULL  = 0.1
+
+
+# main function ===============================================================
+
+def main():
+    # Process command-line arguments.
+    if (   len(sys.argv) != 3
+        or not sys.argv[1].isdigit()
+        or not sys.argv[2].isdigit()
+       ):
+        sys.stdout.write(
+            'usage: generate <num nodes to generate> '
+                            '<num edges to generate>\n'
+        )
+        return
+    num_nodes = int(sys.argv[1])
+    num_edges = int(sys.argv[2])
+
+    null = open('/dev/null')
+
+    # Create node table. It's fine if the table has already been created.
+    # Postgres will just return an error.
+    if num_nodes > 0:
+        sys.stdout.write('generate.py: Creating node table...\n')
+        subprocess.call(
+            gen_command(gen_create_node_table_sql()),
+            stdout=null
+        )
+        sys.stdout.write('generate.py: Creating nodes...\n')
+
+    # Insert nodes into node table.
+    for _ in xrange(num_nodes):
+        subprocess.call(gen_command(gen_insert_node_sql()), stdout=null)
+
+    # Create edge table. Again, it's fine if the table has already been
+    # created.
+    if num_edges > 0:
+        sys.stdout.write('generate.py: Creating edge table...\n')
+        subprocess.call(
+            gen_command(gen_create_edge_table_sql()),
+            stdout=null
+        )
+        sys.stdout.write('generate.py: Creating edges...\n')
+
+    # Insert edges into edge table.
+    for _ in xrange(num_edges):
+        subprocess.call(
+            gen_command(gen_insert_edge_sql(count_nodes())),
+            stdout=null
+        )
+
+    null.close()
+    return
+
+
+# node-generating helper functions ============================================
+
+def gen_create_node_table_sql():
+    return (
+        'CREATE TABLE %s ('
+        '    id          SERIAL PRIMARY KEY,'
+        '    first_name  VARCHAR(%d) NOT NULL,'
+        '    last_name   VARCHAR(%d) NOT NULL,'
+        '    bio         VARCHAR(%d)'
+        ');' % (
+            NODE_TABLE_NAME,
+            NAME_LENGTH_MAX,
+            NAME_LENGTH_MAX,
+            BIO_LENGTH_MAX
+        )
+    )
+
+
+def gen_insert_node_sql():
+    return (
+        'INSERT INTO %s (first_name, last_name, bio) VALUES '
+        '               (%s, %s, %s);' % (
+            NODE_TABLE_NAME,
+            gen_random_name(),
+            gen_random_name(),
+            gen_random_bio()
+        )
+    )
+
+
+def gen_random_name():
+    return '\'' + gen_random_str(
+        NAME_LENGTH_MIN,
+        NAME_LENGTH_MAX,
+        NAME_LENGTH_AVG,
+        NAME_LENGTH_SD,
+        NAME_CHAR_SET
+    ) + '\''
+
+
+def gen_random_bio():
+    if random.random() < BIO_PROB_NULL:
+        return 'NULL'
+    return '\'' + gen_random_str(
+        BIO_LENGTH_MIN,
+        BIO_LENGTH_MAX,
+        BIO_LENGTH_AVG,
+        BIO_LENGTH_SD,
+        BIO_CHAR_SET
+    ) + '\''
+
+
+# edge-generating helper functions ============================================
+
+def gen_create_edge_table_sql():
+    return (
+        'CREATE TABLE %s ('
+        '    id         SERIAL PRIMARY KEY,'
+        '    node_1     INTEGER,'
+        '    node_2     INTEGER,'
+        '    timestamp  TIMESTAMP'
+        ');' % (
+            EDGE_TABLE_NAME
+        )
+    )
+
+
+def gen_insert_edge_sql(total_num_nodes):
+    nodes = random.sample(xrange(total_num_nodes), 2)
+    return (
+        'INSERT INTO %s (node_1, node_2, timestamp) VALUES '
+        '               (%d, %d, NOW());' % (
+            EDGE_TABLE_NAME,
+            nodes[0],
+            nodes[1]
+        )
+    )
+
+
+def count_nodes():
+    output = subprocess.check_output(gen_command(gen_count_nodes_sql()))
+    return int(output.split()[2])
+
+
+def gen_count_nodes_sql():
+    return 'SELECT COUNT(*) FROM %s;' % NODE_TABLE_NAME
+
+
+# general helper functions ====================================================
+
+def gen_command(sql):
+    return [GEPH_BIN_DIR + '/psql', '-c', sql, DB_NAME] 
+
+
+def gen_random_str(length_min, length_max, length_avg, length_sd, char_set):
+    name_length = int(min(max(round(
+        random.gauss(length_avg, length_sd)
+    ), length_min), length_max))
+
+    lst = [random.choice(char_set) for _ in xrange(name_length)]
+    return ''.join(lst)
+
+
+if __name__ == '__main__':
+    main()
