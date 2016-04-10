@@ -10,10 +10,11 @@ import sys
 # constants ===================================================================
 
 GEPH_BIN_DIR = '/home/accts/aas85/Workspace/cs438/final-project/geph-build/bin'
+SERVER_IP_ADDR = '128.36.232.9' # This is Lion's IP address.
 
 # The script won't create this database. The database needs to have already
 # been created (using the createdb binary for example).
-DB_NAME = 'socialnetwork'
+DB_NAME = 'mygraph'
 
 NODE_TABLE_NAME = 'nodes'
 EDGE_TABLE_NAME = 'edges'
@@ -176,7 +177,7 @@ def gen_count_nodes_sql():
 # general helper functions ====================================================
 
 def gen_command(sql):
-    return [GEPH_BIN_DIR + '/psql', '-c', sql, DB_NAME] 
+    return [GEPH_BIN_DIR + '/psql', '-h', SERVER_IP_ADDR, '-c', sql, DB_NAME]
 
 
 def gen_random_str(length_min, length_max, length_avg, length_sd, char_set):
