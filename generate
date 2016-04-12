@@ -1,0 +1,226 @@
+#!/bin/python
+
+import faker
+import random
+import string
+import subprocess
+import sys
+
+
+# constants ===================================================================
+
+PSQL = '/home/accts/aas85/Workspace/cs438/final-project/geph-build/bin/psql'
+SERVER_IP_ADDR = '128.36.232.9' # This is Lion's IP address.
+
+# The script won't create this database. The database needs to have already
+# been created (using the createdb binary for example).
+DB_NAME = 'mygraph1'
+
+NODE_TABLE_NAME = 'nodes'
+EDGE_TABLE_NAME = 'edges'
+
+NAME_LENGTH_MAX     = 50
+EMAIL_LENGTH_MAX    = 50
+PASSWORD_LENGTH_MAX = 50
+BIO_LENGTH_MAX      = 250
+
+PASSWORD_LENGTH_MIN = 6
+PASSWORD_LENGTH_AVG = 12
+PASSWORD_LENGTH_SD  = 3
+PASSWORD_CHAR_SET   = string.lowercase + string.uppercase + string.digits
+
+BIO_LENGTH_MIN = 5
+BIO_LENGTH_AVG = 100
+BIO_LENGTH_SD  = 50
+BIO_PROB_NULL  = 0.2
+
+FAKER = faker.Factory.create()
+
+
+# main function ===============================================================
+
+def main():
+    # Process command-line arguments.
+    if (   len(sys.argv) != 3
+        or not sys.argv[1].isdigit()
+        or not sys.argv[2].isdigit()
+       ):
+        sys.stdout.write(
+            'usage: generate <num nodes to generate> '
+                            '<num edges to generate>\n'
+        )
+        return
+    num_nodes = int(sys.argv[1])
+    num_edges = int(sys.argv[2])
+
+    null = open('/dev/null')
+
+    # Create node table. It's fine if the table has already been created.
+    # Postgres will just return an error.
+    if num_nodes > 0:
+        sys.stdout.write('generate.py: Creating node table...\n')
+        subprocess.call(
+            gen_command(gen_create_node_table_sql()),
+            stdout=null
+        )
+        sys.stdout.write('generate.py: Creating nodes...\n')
+
+    # Insert nodes into node table.
+    for _ in xrange(num_nodes):
+        subprocess.call(
+            gen_command(gen_insert_node_sql()),
+            stdout=null
+        )
+
+    # Create edge table. Again, it's fine if the table has already been
+    # created.
+    if num_edges > 0:
+        sys.stdout.write('generate.py: Creating edge table...\n')
+        subprocess.call(
+            gen_command(gen_create_edge_table_sql()),
+            stdout=null
+        )
+        sys.stdout.write('generate.py: Creating edges...\n')
+
+    # Insert edges into edge table.
+    for _ in xrange(num_edges):
+        subprocess.call(
+            gen_command(gen_insert_edge_sql(count_nodes())),
+            stdout=null
+        )
+
+    null.close()
+    return
+
+
+# node-generating helper functions ============================================
+
+def gen_create_node_table_sql():
+    return (
+        'CREATE TABLE %s ('
+        '    id          SERIAL PRIMARY KEY,'
+        '    first_name  VARCHAR(%d) NOT NULL,'
+        '    last_name   VARCHAR(%d) NOT NULL,'
+        '    email       VARCHAR(%d) NOT NULL,'
+        '    password    VARCHAR(%d) NOT NULL,'
+        '    birthday    DATE NOT NULL,'
+        '    bio         VARCHAR(%d),'
+        '    UNIQUE (email, password)'
+        ');' % (
+            NODE_TABLE_NAME,
+            NAME_LENGTH_MAX,
+            NAME_LENGTH_MAX,
+            EMAIL_LENGTH_MAX,
+            PASSWORD_LENGTH_MAX,
+            BIO_LENGTH_MAX
+        )
+    )
+
+
+def gen_insert_node_sql():
+    return (
+        'INSERT INTO %s '
+        '(first_name, last_name, email, password, birthday, bio) VALUES '
+        '($first_name$%s$first_name$, '
+         '$last_name$%s$last_name$, '
+         '$email$%s$email$, '
+         '$password$%s$password$, '
+         '$birthday$%s$birthday$, '
+         '%s);' % (
+            NODE_TABLE_NAME,
+            FAKER.firstName(),
+            FAKER.lastName(),
+            FAKER.email(),
+            gen_password(),
+            FAKER.date(),
+            gen_bio()
+        )
+    )
+
+
+def gen_password():
+    return gen_random_str(my_randint(PASSWORD_LENGTH_MIN,
+                                     PASSWORD_LENGTH_MAX,
+                                     PASSWORD_LENGTH_AVG,
+                                     PASSWORD_LENGTH_SD),
+                          PASSWORD_CHAR_SET)
+
+
+def gen_bio():
+    if random.random() < BIO_PROB_NULL:
+        return 'NULL'
+    return '$bio$' + FAKER.text(my_randint(BIO_LENGTH_MIN,
+                                           BIO_LENGTH_MAX,
+                                           BIO_LENGTH_AVG,
+                                           BIO_LENGTH_SD)) + '$bio$'
+
+
+# edge-generating helper functions ============================================
+
+def gen_create_edge_table_sql():
+    return (
+        'CREATE TABLE %s ('
+        '    node_1     INTEGER NOT NULL,'
+        '    node_2     INTEGER NOT NULL,'
+        '    timestamp  TIMESTAMP,'
+        '    PRIMARY KEY (node_1, node_2)'
+        ');' % (
+            EDGE_TABLE_NAME
+        )
+    )
+
+
+def gen_insert_edge_sql(total_num_nodes):
+    nodes = random.sample(xrange(total_num_nodes + 1), 2)
+    timestamp = str(FAKER.dateTimeThisYear())
+    forward = (
+        'INSERT INTO %s '
+        '(node_1, node_2, timestamp) VALUES '
+        '(%d, %d, $timestamp$%s$timestamp$);' % (
+            EDGE_TABLE_NAME,
+            nodes[0],
+            nodes[1],
+            timestamp
+        )
+    )
+    reverse = (
+        'INSERT INTO %s '
+        '(node_1, node_2, timestamp) VALUES '
+        '(%d, %d, $timestamp$%s$timestamp$);' % (
+            EDGE_TABLE_NAME,
+            nodes[1],
+            nodes[0],
+            timestamp
+        )
+    )
+    return forward + reverse
+
+
+def count_nodes():
+    output = subprocess.check_output(gen_command(gen_count_nodes_sql()))
+    return int(output.split()[2])
+
+
+def gen_count_nodes_sql():
+    return 'SELECT COUNT(*) FROM %s;' % NODE_TABLE_NAME
+
+
+# general helper functions ====================================================
+
+def gen_command(sql):
+    return [PSQL, '-h', SERVER_IP_ADDR, '-c', sql, DB_NAME]
+
+
+def gen_random_str(length, char_set):
+    chars = [random.choice(char_set) for _ in xrange(length)]
+    return ''.join(chars)
+
+
+def my_randint(n_min, n_max, n_avg, n_sd):
+    base = random.gauss(n_avg, n_sd)
+    bounded = min(max(base, n_min), n_max)
+    return int(round(bounded))
+
+
+if __name__ == '__main__':
+    main()
