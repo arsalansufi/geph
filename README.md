@@ -54,4 +54,32 @@ createdb <database name>
 
 # Connect to the database and start an interactive Postgres terminal.
 psql <database name>
+
+# [ Inside the Postgres terminal. ] List the databases on the server.
+\l
+
+# [ Inside the Postgres terminal. ] Connect to a different database on the
+# server.
+\c <database name>
+
+# [ Inside the Postgres terminal. ] List the tables in the current database.
+\dt OR \dt+
+
+# Stop the database server.
+pg_ctl -D <data directory> stop
+```
+
+## Modifications to Configuration Files
+
+To allow non-local clients to send requests to a Postgres server, two configuration files in the server's data directory need to be modified.
+Working versions of these two files have been placed in the project's `sample-config-files/` directory.
+The modifications / additions have been marked with aggressive comments that look something like this:
+```
+# ADDED =======================================================================
+...
+# ADDED =======================================================================
+
+# MODIFIED ====================================================================
+...
+# MODIFIED ====================================================================
 ```
