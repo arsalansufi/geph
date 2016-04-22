@@ -4402,7 +4402,7 @@ fi
 # but has its own.  Also check other compiler-specific flags here.
 
 if test "$GCC" = yes -a "$ICC" = no; then
-  CFLAGS="-Wall -Wmissing-prototypes -Wpointer-arith"
+  CFLAGS="-Wall -Wmissing-prototypes -Wpointer-arith -pg"
   # These work in some but not all gcc versions
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC supports -Wdeclaration-after-statement" >&5
 $as_echo_n "checking whether $CC supports -Wdeclaration-after-statement... " >&6; }
