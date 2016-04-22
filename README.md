@@ -12,8 +12,9 @@ cd <path to GEPH repo>
 
 # You can specify where you want your GEPH binaries installed at this step. You
 # need to specify a directory in your user folder because we don't have write
-# permissions elsewhere on the Zoo.
-./configure --prefix=<absolute path to directory in your user folder>
+# permissions elsewhere on the Zoo. If you want to use gprof to profile the database
+# add the '--enable-profiling' flag to the configure script.
+./configure --prefix=<absolute path to directory in your user folder> [--enable-profiling]
 
 gmake
 
@@ -82,4 +83,12 @@ The modifications / additions have been marked with aggressive comments that loo
 # MODIFIED ====================================================================
 ...
 # MODIFIED ====================================================================
+```
+
+## Profiling GEPH
+
+If you set the '--enable-profiling' flag when building GEPH, a gmon.out file will appear
+in your current directory. Use gprof to look at the profiling data:
+```
+gprof <executible name> gmon.out > gprof.dump
 ```
