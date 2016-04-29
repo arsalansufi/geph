@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Variables =======================================================================================
+
+# User-set variables. None should have spaces!
+bin_dir="/home/accts/aas85/Workspace/cs438/final-project/geph-build/bin"
+data_sets_dir="/tmp/cs438-afc33-aas85/data-sets"
+db="mygraph1"
+tables=("nodes" "edges")
+
+# Constructed variables
+pg_dump="$bin_dir/pg_dump"
+psql="$bin_dir/psql"
+
+# Helper functions ================================================================================
+
+pg_dump_export()
+{
+    output_name=$1
+    format_flag=$2
+    compression_flag=$3
+
+    output_path="$data_sets_dir/$db/$db-$output_name"
+    echo "Exporting $export_type..."
+
+    ( time $pg_dump -f "$output_path.export" $format_flag $compression_flag $db ) 2> \
+                       "$output_path.time"
+}
+
+copy_export()
+{
+    output_name=$1
+    format=$2
+
+    output_path="$data_sets_dir/$db/$db-$output_name"
+    echo "Exporting $output_name..."
+
+    ( time $psql -c "COPY $table TO '$output_path.export' WITH (FORMAT $format)" $db ) 2> \
+                                    "$output_path.time"
+}
+
+# Main script =====================================================================================
+
+mkdir "$data_sets_dir/$db"
+
+# Run pg_dump exports
+pg_dump_export "full-plain"                  "-Fp"
+pg_dump_export "full-custom-uncompressed"    "-Fc" "-Z0"
+pg_dump_export "full-custom-compressed"      "-Fc" "-Z9"
+pg_dump_export "full-directory-uncompressed" "-Fd" "-Z0"
+pg_dump_export "full-directory-compressed"   "-Fd" "-Z9"
+pg_dump_export "full-tar"                    "-Ft"
+
+# Run COPY exports
+for table in "${tables[@]}"; do
+    copy_export "$table-text"   "text"
+    copy_export "$table-csv"    "csv"
+    copy_export "$table-binary" "binary"
+done
+
+# Clean up
+if [[ -f "gmon.out" ]]; then
+    rm "gmon.out"
+fi
