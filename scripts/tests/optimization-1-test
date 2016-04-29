@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source "./loading-and-profiling-lib.sh"
+mkdir "$data_collection_dir/$db"
+
+# counter=0
+# while [[ $counter -lt 10 ]]; do
+#     echo "SHAT $counter"
+#     counter=$((counter + 1))
+# done
+
+clean_up "full"
+psql_load "full-plain"
+profile "full-plain-geph" $psql
