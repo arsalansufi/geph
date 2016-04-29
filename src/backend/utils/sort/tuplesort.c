@@ -236,6 +236,7 @@ struct Tuplesortstate
 	 * qsort_arg_comparator.
 	 */
 	SortTupleComparator comparetup;
+	bool MYADDEDFIELD;
 
 	/*
 	 * Function to copy a supplied input tuple into palloc'd space and set up
@@ -400,7 +401,7 @@ struct Tuplesortstate
 #endif
 };
 
-#define COMPARETUP(state,a,b)	((*(state)->comparetup) (a, b, state))
+#define COMPARETUP(state,a,b)	( (state->MYADDEDFIELD) ? (comparetup_index_btree(a, b, state)) : ((*(state)->comparetup) (a, b, state)) )
 #define COPYTUP(state,stup,tup) ((*(state)->copytup) (state, stup, tup))
 #define WRITETUP(state,tape,stup)	((*(state)->writetup) (state, tape, stup))
 #define READTUP(state,stup,tape,len) ((*(state)->readtup) (state, stup, tape, len))
@@ -458,7 +459,7 @@ struct Tuplesortstate
 
 
 static Tuplesortstate *tuplesort_begin_common(int workMem, bool randomAccess);
-static void puttuple_common(Tuplesortstate *state, SortTuple *tuple);
+static void puttuple_common(Tuplesortstate *state, SortTuple *tuple) __attribute__((always_inline));
 static bool consider_abort_common(Tuplesortstate *state);
 static void inittapes(Tuplesortstate *state);
 static void selectnewtape(Tuplesortstate *state);
@@ -467,12 +468,12 @@ static void mergeonerun(Tuplesortstate *state);
 static void beginmerge(Tuplesortstate *state);
 static void mergepreread(Tuplesortstate *state);
 static void mergeprereadone(Tuplesortstate *state, int srcTape);
-static void dumptuples(Tuplesortstate *state, bool alltuples);
+static void dumptuples(Tuplesortstate *state, bool alltuples) __attribute__((always_inline));
 static void make_bounded_heap(Tuplesortstate *state);
 static void sort_bounded_heap(Tuplesortstate *state);
 static void tuplesort_heap_insert(Tuplesortstate *state, SortTuple *tuple,
 					  int tupleindex, bool checkIndex);
-static void tuplesort_heap_siftup(Tuplesortstate *state, bool checkIndex);
+static void tuplesort_heap_siftup(Tuplesortstate *state, bool checkIndex) __attribute__((always_inline));
 static void reversedirection(Tuplesortstate *state);
 static unsigned int getlen(Tuplesortstate *state, int tapenum, bool eofOK);
 static void markrunend(Tuplesortstate *state, int tapenum);
@@ -491,7 +492,7 @@ static void writetup_cluster(Tuplesortstate *state, int tapenum,
 static void readtup_cluster(Tuplesortstate *state, SortTuple *stup,
 				int tapenum, unsigned int len);
 static int comparetup_index_btree(const SortTuple *a, const SortTuple *b,
-					   Tuplesortstate *state);
+					   Tuplesortstate *state) __attribute__((always_inline));
 static int comparetup_index_hash(const SortTuple *a, const SortTuple *b,
 					  Tuplesortstate *state);
 static void copytup_index(Tuplesortstate *state, SortTuple *stup, void *tup);
@@ -604,6 +605,8 @@ tuplesort_begin_common(int workMem, bool randomAccess)
 	state->result_tape = -1;	/* flag that result tape has not been formed */
 
 	MemoryContextSwitchTo(oldcontext);
+
+	state->MYADDEDFIELD = false;
 
 	return state;
 }
@@ -802,6 +805,7 @@ tuplesort_begin_index_btree(Relation heapRel,
 								randomAccess);
 
 	state->comparetup = comparetup_index_btree;
+	state->MYADDEDFIELD = true;
 	state->copytup = copytup_index;
 	state->writetup = writetup_index;
 	state->readtup = readtup_index;
