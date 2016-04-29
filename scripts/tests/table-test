@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source "./loading-and-profiling-lib.sh"
+mkdir "$data_collection_dir/$db"
+
+for table in "${tables[@]}"; do
+    # Frontend copy
+
+    clean_up $table 
+    copy_load "$table-text" "$table-text-frontend" "frontend" "text"
+    profile "$table-text-frontend" $psql
+
+    clean_up $table
+    copy_load "$table-csv" "$table-csv-frontend" "frontend" "csv"
+    profile "$table-csv-frontend" $psql
+
+    clean_up $table
+    copy_load "$table-binary" "$table-binary-frontend" "frontend" "binary"
+    profile "$table-binary-frontend" $psql
+
+    # Backend copy
+
+    clean_up $table
+    copy_load "$table-text" "$table-text-backend" "backend" "text"
+    profile "$table-text-backend" $psql
+
+    clean_up $table
+    copy_load "$table-csv" "$table-csv-backend" "backend" "csv"
+    profile "$table-csv-backend" $psql
+
+    clean_up $table
+    copy_load "$table-binary" "$table-binary-backend" "backend" "binary"
+    profile "$table-binary-backend" $psql
+done
+
+clean_up
