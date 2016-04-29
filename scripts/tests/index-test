@@ -1,0 +1,23 @@
+#!/bin/bash
+
+source "./loading-and-profiling-lib.sh"
+mkdir "$data_collection_dir/$db"
+
+for table in "${tables[@]}"; do
+    # Setup indexes after loading data
+    clean_up "full"
+    execute_sql "./sql/setup-$table-table.sql"
+    clean_up
+    copy_load "$table-text" "$table-text-backend-indexes-after-1" "backend" "text"
+    profile "$table-text-backend-indexes-after-1" $psql
+    clean_up
+    execute_sql_and_save "./sql/add-$table-indexes.sql" "$table-text-backend-indexes-after-2"
+    profile "$table-text-backend-indexes-after-2" $psql
+
+    # Setup indexes before loading data
+    clean_up $table
+    copy_load "$table-text" "$table-text-backend-indexes-before" "backend" "text"
+    profile "$table-text-backend-indexes-before" $psql
+done
+
+clean_up

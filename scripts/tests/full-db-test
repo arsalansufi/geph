@@ -1,0 +1,58 @@
+#!/bin/bash
+
+source "./loading-and-profiling-lib.sh"
+mkdir "$data_collection_dir/$db"
+
+# Plain
+
+clean_up "full"
+psql_load "full-plain"
+profile "full-plain" $psql
+
+# Custom, uncompressed
+
+clean_up "full"
+pg_restore_load "full-custom-uncompressed" "full-custom-uncompressed-serial" "-Fc" "-j1"
+profile "full-custom-uncompressed-serial" $pg_restore
+
+clean_up "full"
+pg_restore_load "full-custom-uncompressed" "full-custom-uncompressed-parallel" "-Fc" "-j8"
+profile "full-custom-uncompressed-parallel" $pg_restore
+
+# Custom, compressed
+
+clean_up "full"
+pg_restore_load "full-custom-compressed" "full-custom-compressed-serial" "-Fc" "-j1"
+profile "full-custom-compressed-serial" $pg_restore
+
+clean_up "full"
+pg_restore_load "full-custom-compressed" "full-custom-compressed-parallel" "-Fc" "-j8"
+profile "full-custom-compressed-parallel" $pg_restore
+
+# Directory, uncompressed
+
+clean_up "full"
+pg_restore_load "full-directory-uncompressed" "full-directory-uncompressed-serial" "-Fd" "-j1"
+profile "full-directory-uncompressed-serial" $pg_restore
+
+clean_up "full"
+pg_restore_load "full-directory-uncompressed" "full-directory-uncompressed-parallel" "-Fd" "-j8"
+profile "full-directory-uncompressed-parallel" $pg_restore
+
+# Directory, compressed
+
+clean_up "full"
+pg_restore_load "full-directory-compressed" "full-directory-compressed-serial" "-Fd" "-j1"
+profile "full-directory-compressed-serial" $pg_restore
+
+clean_up "full"
+pg_restore_load "full-directory-compressed" "full-directory-compressed-parallel" "-Fd" "-j8"
+profile "full-directory-compressed-parallel" $pg_restore
+
+# Tar
+
+clean_up "full"
+pg_restore_load "full-tar" "full-tar-serial" "-Ft" "-j1"
+profile "full-tar-serial" $pg_restore
+
+clean_up
