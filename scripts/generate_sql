@@ -13,11 +13,7 @@ OUTPUT_PATH = '/tmp/cs438-afc33-aas85/'
 OWNER = 'afc33'
 
 # Percentage of total possible edges created
-GRAPH_DENSITY	= 0.01
 MIL		= 1000000
-
-NODE_TABLE_NAME = 'nodes'
-EDGE_TABLE_NAME = 'edges'
 
 NAME_LENGTH_MAX     = 50
 EMAIL_LENGTH_MAX    = 50
@@ -62,12 +58,17 @@ def main():
 
     # Insert edges into edge table.
     sys.stdout.write("Adding edges\n")
-    p = 2*float(num_edges)/(float(num_nodes)*(float(num_nodes) - 1))
-    sys.stdout.write(str(p) + '\n')
-    for i in range(1, num_edges + 1):
-        for j in range(i+1, num_edges + 1):
-            if random.random() < p:
+    x = 0
+    class Done(Exception): pass
+    try:
+        for i in range(1, num_edges + 1):
+            for j in range(i+1, num_edges + 1):
+                if x == num_edges:
+                    raise Done
+                x = x + 1
                 f.write(gen_csv_edge(i,j))
+    except Done:
+        pass
 
     # Insert nodes into sql file
     sys.stdout.write("Adding nodes\n")
