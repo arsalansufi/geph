@@ -67,7 +67,7 @@ static void btbuildCallback(Relation index,
 				Datum *values,
 				bool *isnull,
 				bool tupleIsAlive,
-				void *state) __attribute__((always_inline));
+				void *state);
 static void btvacuumscan(IndexVacuumInfo *info, IndexBulkDeleteResult *stats,
 			 IndexBulkDeleteCallback callback, void *callback_state,
 			 BTCycleId cycleid);
