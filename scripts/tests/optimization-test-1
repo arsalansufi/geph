@@ -1,0 +1,72 @@
+#!/bin/bash
+
+source "./loading-and-profiling-lib.sh"
+mkdir "$data_collection_dir/$db"
+
+postgres_bin_dir="/home/accts/aas85/Workspace/cs438/final-project/postgres-build/bin"
+postgres_gprof_dir="/tmp/cs438-afc33-aas85/dbs/postgres/gprof"
+geph1_bin_dir="/home/accts/aas85/Workspace/cs438/final-project/geph1-build/bin"
+geph1_gprof_dir="/tmp/cs438-afc33-aas85/dbs/geph1/gprof"
+geph2_bin_dir="/home/accts/aas85/Workspace/cs438/final-project/geph2-build/bin"
+geph2_gprof_dir="/tmp/cs438-afc33-aas85/dbs/geph2/gprof"
+data_collection_dir="/tmp/cs438-afc33-aas85/data-collection"
+data_sets_dir="/tmp/cs438-afc33-aas85/data-sets"
+dbs_dir="/tmp/cs438-afc33-aas85/dbs"
+start_dir=$(pwd)
+db="mygraph2"
+
+counter=0
+while [[ $counter -lt 3 ]]; do
+    create_db="$postgres_bin_dir/createdb"
+    drop_db="$postgres_bin_dir/dropdb"
+    pg_ctl="$postgres_bin_dir/pg_ctl"
+    pg_restore="$postgres_bin_dir/pg_restore"
+    postgres="$postgres_bin_dir/postgres"
+    psql="$postgres_bin_dir/psql"
+    gprof_dir=$postgres_gprof_dir
+
+    $pg_ctl "-D" "$dbs_dir/postgres" "-l" "$dbs_dir/postgres-logfile" "start"
+    sleep 5s
+    clean_up "full"
+    psql_load_2 "full-plain" "full-plain-postgres-$counter"
+    profile "full-plain-postgres-$counter" $psql
+    clean_up "full"
+    $pg_ctl "-D" "$dbs_dir/postgres" "stop"
+    sleep 5s
+
+    create_db="$geph1_bin_dir/createdb"
+    drop_db="$geph1_bin_dir/dropdb"
+    pg_ctl="$geph1_bin_dir/pg_ctl"
+    pg_restore="$geph1_bin_dir/pg_restore"
+    postgres="$geph1_bin_dir/postgres"
+    psql="$geph1_bin_dir/psql"
+    gprof_dir=$geph1_gprof_dir
+
+    $pg_ctl "-D" "$dbs_dir/geph1" "-l" "$dbs_dir/geph1-logfile" "start"
+    sleep 5s
+    clean_up "full"
+    psql_load_2 "full-plain" "full-plain-geph1-$counter"
+    profile "full-plain-geph1-$counter" $psql
+    clean_up "full"
+    $pg_ctl "-D" "$dbs_dir/geph1" "stop"
+    sleep 5s
+
+    create_db="$geph2_bin_dir/createdb"
+    drop_db="$geph2_bin_dir/dropdb"
+    pg_ctl="$geph2_bin_dir/pg_ctl"
+    pg_restore="$geph2_bin_dir/pg_restore"
+    postgres="$geph2_bin_dir/postgres"
+    psql="$geph2_bin_dir/psql"
+    gprof_dir=$geph2_gprof_dir
+
+    $pg_ctl "-D" "$dbs_dir/geph2" "-l" "$dbs_dir/geph2-logfile" "start"
+    sleep 5s
+    clean_up "full"
+    psql_load_2 "full-plain" "full-plain-geph2-$counter"
+    profile "full-plain-geph2-$counter" $psql
+    clean_up "full"
+    $pg_ctl "-D" "$dbs_dir/geph2" "stop"
+    sleep 5s
+
+    counter=$((counter + 1))
+done
