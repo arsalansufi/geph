@@ -191,7 +191,7 @@ extern struct varlena *pg_detoast_datum(struct varlena * datum);
 extern struct varlena *pg_detoast_datum_copy(struct varlena * datum);
 extern struct varlena *pg_detoast_datum_slice(struct varlena * datum,
 					   int32 first, int32 count);
-extern struct varlena *pg_detoast_datum_packed(struct varlena * datum);
+extern struct varlena *pg_detoast_datum_packed(struct varlena * datum) __attribute__((always_inline));
 
 #define PG_DETOAST_DATUM(datum) \
 	pg_detoast_datum((struct varlena *) DatumGetPointer(datum))
