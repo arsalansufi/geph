@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# To properly run this test, an instance of a postgresql database must be running, and there
+# must not already be a database named "db1".
+
+# 1x5 Test
+echo "sorted_1x5.sql"
+echo "sorted_1x5.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_1x5.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_1x5.sql"
+echo "unsorted_1x5.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_1x5.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+# 2x10 Test
+echo "sorted_2x10.sql"
+echo "sorted_2x10.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_2x10.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_2x10.sql"
+echo "unsorted_2x10.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_2x10.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+# 5x25 Test
+echo "sorted_5x25.sql"
+echo "sorted_5x25.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_5x25.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_5x25.sql"
+echo "unsorted_5x25.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_5x25.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+# 10x50 Test
+echo "sorted_10x50.sql"
+echo "sorted_10x50.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_10x50.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_10x50.sql"
+echo "unsorted_10x50.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_10x50.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+# 20x100 Test
+echo "sorted_20x100.sql"
+echo "sorted_20x100.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_20x100.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_20x100.sql"
+echo "unsorted_20x100.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_20x100.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+# 30x150 Test
+echo "sorted_30x150.sql"
+echo "sorted_30x150.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/sorted_30x150.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+echo "unsorted_30x150.sql"
+echo "unsorted_30x150.sql" >> results_mixed.txt
+./geph-build/bin/createdb db1
+(/usr/bin/time -f "%e (s)" ./geph-build/bin/psql -d db1 -f sql_files/unsorted_30x150.sql) 2>> results_mixed.txt
+./geph-build/bin/dropdb db1
+
+
+echo "\n" >> results_mixed.txt
