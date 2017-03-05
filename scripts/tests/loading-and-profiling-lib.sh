@@ -15,6 +15,7 @@ tables=("nodes" "edges")
 # Constructed variables
 create_db="$bin_dir/createdb"
 drop_db="$bin_dir/dropdb"
+pg_ctl="$bin_dir/pg_ctl"
 pg_restore="$bin_dir/pg_restore"
 postgres="$bin_dir/postgres"
 psql="$bin_dir/psql"
